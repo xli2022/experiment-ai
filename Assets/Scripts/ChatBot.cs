@@ -17,6 +17,7 @@ public class ChatBot : MonoBehaviour
     private string _thoughts;
 
     public Dropdown Models;
+    public Dropdown Prompts;
     public InputField Input;
     public MarkdownRenderer Output;
     public ScrollRect OutputScroll;
@@ -24,6 +25,18 @@ public class ChatBot : MonoBehaviour
     public void SelectModel(int choice)
     {
         _ollama.SelectedModel = Models.options[choice].text;
+        _chat.Think = SupportThink(_ollama.SelectedModel);
+    }
+
+    public void SelectPrompt(int choice)
+    {
+        _chat.OnThink -= OnThink;
+        if (choice == 0) {
+            _chat = new(_ollama);
+        } else {
+            _chat = new(_ollama, Resources.Load<TextAsset>($"Prompts/{Prompts.options[choice - 1].text}").text);
+        }
+        _chat.OnThink += OnThink;
         _chat.Think = SupportThink(_ollama.SelectedModel);
     }
 
@@ -46,9 +59,7 @@ public class ChatBot : MonoBehaviour
     private void HandleCommand(string command)
     {
         if (command == "/clear") {
-            _chat = new(_ollama);
-            _chat.OnThink += OnThink;
-            _chat.Think = SupportThink(_ollama.SelectedModel);
+            SelectPrompt(Prompts.value);
             Output.Source = "";
             _history = Output.Source;
             _tokens = "";
@@ -58,7 +69,7 @@ public class ChatBot : MonoBehaviour
 
     private async Awaitable HandleChat(string input)
     {
-        Output.Source += $"<color=black>{input}</color>";
+        Output.Source += $"<color=grey>{input}</color>";
         _history = Output.Source;
         _tokens = "";
         _thoughts = "";
@@ -100,14 +111,18 @@ public class ChatBot : MonoBehaviour
     async void Start()
     {
         _ollama = new(new Uri("http://berkeley.babeltimeus.com:11434"));
+        var models = await _ollama.ListLocalModelsAsync();
+        Models.AddOptions(models.Select(model => model.Name).ToList());
+        _ollama.SelectedModel = Models.options[0].text;
+        var prompts = Resources.LoadAll<TextAsset>("Prompts").Select(prompt => prompt.name).ToList();
+        prompts.Insert(0, "");
+        Prompts.AddOptions(prompts);
         _chat = new(_ollama);
         _chat.OnThink += OnThink;
+        _chat.Think = SupportThink(_ollama.SelectedModel);
         _tools = new object[] {
             new GeneratedTools.GetUtcNowTool()
         };
-        var models = await _ollama.ListLocalModelsAsync();
-        Models.AddOptions(models.Select(model => model.Name).ToList());
-        SelectModel(0);
     }
 
     void Update()
@@ -118,5 +133,10 @@ public class ChatBot : MonoBehaviour
             (currentKeyboard.leftCtrlKey.isPressed || currentKeyboard.rightCtrlKey.isPressed)) {
             SendInput();
         }
+    }
+
+    void OnDestroy()
+    {
+        _chat.OnThink -= OnThink;
     }
 }
