@@ -1,0 +1,16 @@
+/[Bb]uild/
+/[Ll]ibrary/
+/[Ll]ogs/
+/[Oo]bj/
+/[Tt]emp/
+/[Uu]ser[Ss]ettings/
+
+/*.booproj
+/*.csproj
+/*.pidb
+/*.sln
+/*.slnx
+/*.suo
+/*.unityproj
+/*.user
+/*.userprefs
