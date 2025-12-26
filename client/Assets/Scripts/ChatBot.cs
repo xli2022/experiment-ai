@@ -34,7 +34,7 @@ public class ChatBot : MonoBehaviour
         if (choice == 0) {
             _chat = new(_ollama);
         } else {
-            _chat = new(_ollama, Resources.Load<TextAsset>($"Prompts/{Prompts.options[choice - 1].text}").text);
+            _chat = new(_ollama, Resources.Load<TextAsset>($"Prompts/{Prompts.options[choice].text}").text);
         }
         _chat.OnThink += OnThink;
         _chat.Think = SupportThink(_ollama.SelectedModel);
