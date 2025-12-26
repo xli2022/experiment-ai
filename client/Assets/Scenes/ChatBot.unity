@@ -421,7 +421,7 @@ MonoBehaviour:
     Monospace:
       RenderMonospace: 1
       UseCustomFont: 1
-      FontAssetPathRelativeToResources: Noto/Noto Mono/NotoMono-Regular
+      FontAssetPathRelativeToResources: "\u601D\u6E90\u9ED1\u9AD4-Medium"
       DrawOverlay: 1
       OverlayColor: {r: 0, g: 0, b: 0, a: 0.23529412}
       OverlayPaddingPixels: 25
@@ -490,8 +490,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 67393bfc3a860b042baa08f7fbeadd93, type: 2}
-  m_sharedMaterial: {fileID: -4543751221255232905, guid: 67393bfc3a860b042baa08f7fbeadd93, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: bfe670e875231734598b8ffdcd4d7d20, type: 2}
+  m_sharedMaterial: {fileID: 6105520199779406489, guid: bfe670e875231734598b8ffdcd4d7d20, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

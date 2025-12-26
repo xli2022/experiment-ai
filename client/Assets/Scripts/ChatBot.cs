@@ -49,14 +49,14 @@ public class ChatBot : MonoBehaviour
         string input = Input.text.Trim();
         Input.text = "";
         if (input.StartsWith("/")) {
-            HandleCommand(input);
+            await HandleCommand(input);
         } else {
             await HandleChat(input);
         }
         _running = false;
     }
 
-    private void HandleCommand(string command)
+    private async Awaitable HandleCommand(string command)
     {
         if (command == "/clear") {
             SelectPrompt(Prompts.value);
@@ -64,6 +64,10 @@ public class ChatBot : MonoBehaviour
             _history = Output.Source;
             _tokens = "";
             _thoughts = "";
+        } else if (command.StartsWith("/py ")) {
+            string output = Tools.RunPython(command.Substring(4));
+            Output.Source += $"\n<color=yellow>{command}\n{output}</color>\n";
+            _history = Output.Source;
         }
     }
 
@@ -121,7 +125,8 @@ public class ChatBot : MonoBehaviour
         _chat.OnThink += OnThink;
         _chat.Think = SupportThink(_ollama.SelectedModel);
         _tools = new object[] {
-            new GeneratedTools.GetUtcNowTool()
+            new GeneratedTools.GetUtcNowTool(),
+            new GeneratedTools.RunPythonTool()
         };
     }
 
@@ -138,5 +143,6 @@ public class ChatBot : MonoBehaviour
     void OnDestroy()
     {
         _chat.OnThink -= OnThink;
+        PyRunner.Shutdown();
     }
 }
