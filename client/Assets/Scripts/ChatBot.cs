@@ -56,17 +56,18 @@ public class ChatBot : MonoBehaviour
         _running = false;
     }
 
-    private async Awaitable HandleCommand(string command)
+    private async Awaitable HandleCommand(string input)
     {
-        if (command == "/clear") {
+        if (input == "/clear") {
             SelectPrompt(Prompts.value);
             Output.Source = "";
             _history = Output.Source;
             _tokens = "";
             _thoughts = "";
-        } else if (command.StartsWith("/py ")) {
-            string output = Tools.RunPython(command.Substring(4));
-            Output.Source += $"\n<color=yellow>{command}\n{output}</color>\n";
+        } else if (input.StartsWith("/py ")) {
+            string code = input.Substring(4);
+            string output = PyRunner.RunBlocking(code);
+            Output.Source += $"\n<color=yellow>{input}\n{output}</color>\n";
             _history = Output.Source;
         }
     }
@@ -104,7 +105,7 @@ public class ChatBot : MonoBehaviour
 
     private bool SupportThink(string model)
     {
-        return model.StartsWith("gpt-oss") || model.StartsWith("deepseek");
+        return model.StartsWith("gpt-oss") || model.StartsWith("qwen") || model.StartsWith("deepseek");
     }
 
     private bool SupportTools(string model)

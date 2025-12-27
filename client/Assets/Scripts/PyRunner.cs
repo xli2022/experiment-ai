@@ -20,15 +20,16 @@ public static class PyRunner
     public static string RunBlocking(string code, int timeoutMs = 30000)
     {
         StartIfNeeded();
-
-        var req = new Request { Code = code };
+        Request req = new() { Code = code };
         _queue.Enqueue(req);
         _wake.Set();
-        if (!req.Tcs.Task.Wait(timeoutMs)) {
-            return "Python execution timed out.";
+        string output;
+        if (req.Tcs.Task.Wait(timeoutMs)) {
+            output = req.Tcs.Task.Result;
+        } else {
+            output = "Python execution timed out.";
         }
-
-        return req.Tcs.Task.Result;
+        return output;
     }
 
     public static void Shutdown()
@@ -40,8 +41,9 @@ public static class PyRunner
 
     private static void StartIfNeeded()
     {
-        if (Interlocked.CompareExchange(ref _started, 1, 0) != 0) return;
-
+        if (Interlocked.CompareExchange(ref _started, 1, 0) != 0) {
+            return;
+        }
         Thread thread = new(PythonThreadMain) {
             IsBackground = true,
             Name = "PythonThread"
@@ -56,15 +58,11 @@ public static class PyRunner
         string pyHome = @"C:\Users\sam\AppData\Local\Programs\Python\Python313";
         Runtime.PythonDLL = Path.Combine(pyHome, "python313.dll");
         PythonEngine.PythonHome = pyHome;
-        PythonEngine.PythonPath = string.Join(";", new[]
-        {
+        PythonEngine.PythonPath = string.Join(";", new[] {
             Path.Combine(pyHome, "Lib"),
             Path.Combine(pyHome, "Lib", "site-packages")
         });
-
         PythonEngine.Initialize();
-
-        // Allow other threads to exist, we still serialize all work onto this thread.
         PythonEngine.BeginAllowThreads();
 
         PyDict globals;
@@ -72,7 +70,6 @@ public static class PyRunner
         dynamic contextlib;
         dynamic io;
         dynamic sys;
-
         using (Py.GIL()) {
             globals = new();
             locals = new();
@@ -83,12 +80,9 @@ public static class PyRunner
 
         while (true) {
             _wake.WaitOne();
-
             if (Interlocked.CompareExchange(ref _started, 0, 0) == 0) {
                 break;
             }
-
-            // Drain queue
             while (_queue.TryDequeue(out var req)) {
                 try {
                     string output = "";
@@ -100,10 +94,8 @@ public static class PyRunner
                             });
                         });
                     }
-
                     req.Tcs.TrySetResult(output);
                 } catch (PythonException ex) {
-                    // Return Python exception text to caller
                     req.Tcs.TrySetResult(ex.ToString());
                 } catch (Exception ex) {
                     req.Tcs.TrySetResult(ex.ToString());
@@ -111,8 +103,6 @@ public static class PyRunner
             }
         }
 
-        // In the Unity Editor, do not call Shutdown on play stop.
-        // If you build a player and want clean exit, only shut down during actual process exit.
         PythonEngine.Shutdown();
     }
 }
