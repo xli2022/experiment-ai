@@ -13,7 +13,7 @@ locations = [
 ]
 
 # 游戏中可以买卖的物品，代码中的代号和和显示名称的对应
-Goods = {
+names = {
     "COSMETIC": "伪劣化妆品",
     "CIGARETTE": "进口香烟",
     "CAR": "进口汽车",
@@ -40,7 +40,7 @@ user_state = {
     "location": "北京站",
     "cash": 2000,
     "debt": 5000,
-    "goods": [],
+    "goods": {},
     "daysLeft": 20,
     "totalGoods": 0,
     "currentEvent": None
@@ -94,7 +94,7 @@ bl.sell_goods(goods, quantity)
 \`\`\`python
 # 获取当前用户数据和物品价格数据
 #
-user_state, market_prices, game_info = bl.get_state(goods, quantity)
+user_state, market_prices, game_info = bl.get_state()
 \`\`\`
 
 ## 移动到新地点

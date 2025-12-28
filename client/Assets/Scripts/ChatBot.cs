@@ -25,7 +25,7 @@ public class ChatBot : MonoBehaviour
     public void SelectModel(int choice)
     {
         _ollama.SelectedModel = Models.options[choice].text;
-        _chat.Think = SupportThink(_ollama.SelectedModel);
+        SelectPrompt(Prompts.value);
     }
 
     public void SelectPrompt(int choice)
@@ -59,7 +59,7 @@ public class ChatBot : MonoBehaviour
     private async Awaitable HandleCommand(string input)
     {
         if (input == "/clear") {
-            SelectPrompt(Prompts.value);
+            SelectModel(Models.value);
             Output.Source = "";
             _history = Output.Source;
             _tokens = "";
@@ -127,6 +127,15 @@ public class ChatBot : MonoBehaviour
         _chat.Think = SupportThink(_ollama.SelectedModel);
         _tools = new object[] {
             new GeneratedTools.GetUtcNowTool(),
+            new GeneratedTools.FileExistsTool(),
+            new GeneratedTools.ReadFileTool(),
+            new GeneratedTools.WriteFileTool(),
+            new GeneratedTools.DeleteFileTool(),
+            new GeneratedTools.DirectoryExistsTool(),
+            new GeneratedTools.CreateDirectoryTool(),
+            new GeneratedTools.DeleteDirectoryTool(),
+            new GeneratedTools.ListFilesTool(),
+            new GeneratedTools.ListDirectoriesTool(),
             new GeneratedTools.RunPythonTool()
         };
     }

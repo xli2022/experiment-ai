@@ -59,6 +59,7 @@ public static class PyRunner
         Runtime.PythonDLL = Path.Combine(pyHome, "python313.dll");
         PythonEngine.PythonHome = pyHome;
         PythonEngine.PythonPath = string.Join(";", new[] {
+            @"C:\Users\sam\Projects\experiments\ai\PythonLib",
             Path.Combine(pyHome, "Lib"),
             Path.Combine(pyHome, "Lib", "site-packages")
         });
