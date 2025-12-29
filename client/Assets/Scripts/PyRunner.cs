@@ -53,16 +53,13 @@ public static class PyRunner
 
     private static void PythonThreadMain()
     {
-        // Pin the exact runtime you want here. Do this before Initialize.
         // Adjust paths to your environment.
-        string pyHome = @"C:\Users\sam\AppData\Local\Programs\Python\Python313";
-        Runtime.PythonDLL = Path.Combine(pyHome, "python313.dll");
-        PythonEngine.PythonHome = pyHome;
-        PythonEngine.PythonPath = string.Join(";", new[] {
-            @"C:\Users\sam\Projects\experiments\ai\PythonLib",
-            Path.Combine(pyHome, "Lib"),
-            Path.Combine(pyHome, "Lib", "site-packages")
-        });
+        string pythonHome = "/usr/lib/python3.12";
+        Runtime.PythonDLL = Path.Combine(pythonHome, "config-3.12-x86_64-linux-gnu/libpython3.12.so");
+        PythonEngine.PythonHome = "/usr";
+        /*PythonEngine.PythonPath = string.Join(":", new[] {
+            "../PythonLib"
+        });*/
         PythonEngine.Initialize();
         PythonEngine.BeginAllowThreads();
 

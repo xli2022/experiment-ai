@@ -1,6 +1,7 @@
 using LogicUI.FancyTextRendering;
 using OllamaSharp;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -10,7 +11,7 @@ public class ChatBot : MonoBehaviour
 {
     private OllamaApiClient _ollama;
     private Chat _chat;
-    private object[] _tools;
+    private List<object> _tools;
     private bool _running;
     private string _history;
     private string _tokens;
@@ -125,7 +126,7 @@ public class ChatBot : MonoBehaviour
         _chat = new(_ollama);
         _chat.OnThink += OnThink;
         _chat.Think = SupportThink(_ollama.SelectedModel);
-        _tools = new object[] {
+        _tools = new() {
             new GeneratedTools.GetUtcNowTool(),
             new GeneratedTools.FileExistsTool(),
             new GeneratedTools.ReadFileTool(),
@@ -136,8 +137,10 @@ public class ChatBot : MonoBehaviour
             new GeneratedTools.DeleteDirectoryTool(),
             new GeneratedTools.ListFilesTool(),
             new GeneratedTools.ListDirectoriesTool(),
-            new GeneratedTools.RunPythonTool()
         };
+        if (Application.platform == RuntimePlatform.LinuxPlayer) {
+            _tools.Add(new GeneratedTools.RunPythonTool());
+        }
     }
 
     void Update()

@@ -109,7 +109,7 @@ public static class Tools
 
     private static string GetPath(string path)
     {
-        return Path.Combine(@"C:\Users\sam\Projects\experiments\ai\Sandbox", path.Replace("..", ""));
+        return Path.Combine("../Sandbox", path.Replace("..", ""));
     }
 
     [OllamaTool]

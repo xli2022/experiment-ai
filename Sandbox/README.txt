@@ -1,0 +1,1 @@
+AI can only read/write in this folder.
