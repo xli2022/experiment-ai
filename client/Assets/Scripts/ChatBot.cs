@@ -114,6 +114,11 @@ public class ChatBot : MonoBehaviour
         return model.StartsWith("gpt-oss") || model.StartsWith("qwen");
     }
 
+    void Awake()
+    {
+        Application.targetFrameRate = 30;
+    }
+
     async void Start()
     {
         _ollama = new(new Uri("http://berkeley.babeltimeus.com:11434"));
