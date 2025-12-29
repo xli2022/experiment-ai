@@ -17,14 +17,14 @@ public static class PyRunner
     private static readonly ConcurrentQueue<Request> _queue = new();
     private static readonly AutoResetEvent _wake = new(false);
 
-    public static string RunBlocking(string code, int timeoutMs = 30000)
+    public static string RunBlocking(string code)
     {
         StartIfNeeded();
         Request req = new() { Code = code };
         _queue.Enqueue(req);
         _wake.Set();
         string output;
-        if (req.Tcs.Task.Wait(timeoutMs)) {
+        if (req.Tcs.Task.Wait(30000)) {
             output = req.Tcs.Task.Result;
         } else {
             output = "Python execution timed out.";

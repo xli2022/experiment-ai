@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 
 public static class Tools
 {
@@ -110,6 +111,14 @@ public static class Tools
     private static string GetPath(string path)
     {
         return Path.Combine("../Sandbox", path.Replace("..", ""));
+    }
+
+    [OllamaTool]
+    public static string FetchUrl(string url)
+    {
+        HttpClient client = new();
+        var response = client.GetAsync(url).Result;
+        return response.Content.ReadAsStringAsync().Result;
     }
 
     [OllamaTool]

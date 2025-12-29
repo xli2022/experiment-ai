@@ -65,17 +65,22 @@ public class ChatBot : MonoBehaviour
             _history = Output.Source;
             _tokens = "";
             _thoughts = "";
-        } else if (input.StartsWith("/py ")) {
-            string code = input.Substring(4);
-            string output = PyRunner.RunBlocking(code);
-            Output.Source += $"\n<color=yellow>{input}\n{output}</color>\n";
+        } else if (input.StartsWith("/fetch ")) {
+            string url = input.Substring(7);
+            string output = Tools.FetchUrl(url);
+            Output.Source += $"\n<color=yellow>{input}</color>\n{output.Length} bytes\n";
+            _history = Output.Source;
+        } else if (input.StartsWith("/python ")) {
+            string code = input.Substring(8);
+            string output = Tools.RunPython(code);
+            Output.Source += $"\n<color=yellow>{input}</color>\n{output}\n";
             _history = Output.Source;
         }
     }
 
     private async Awaitable HandleChat(string input)
     {
-        Output.Source += $"<color=grey>{input}</color>";
+        Output.Source += $"<color=yellow>{input}</color>";
         _history = Output.Source;
         _tokens = "";
         _thoughts = "";
@@ -100,7 +105,10 @@ public class ChatBot : MonoBehaviour
     {
         _tokens += token;
         _thoughts += thought;
-        Output.Source = $"{_history}\n\n<i>{_thoughts}</i>\n\n{_tokens}\n\n";
+        if (_thoughts.Length > 1000) {
+            _thoughts = _thoughts[^1000..];
+        }
+        Output.Source = $"{_history}\n\n<color=grey>{_thoughts}</color>\n\n{_tokens}\n\n";
         OutputScroll.verticalNormalizedPosition = 0;
     }
 
@@ -142,6 +150,7 @@ public class ChatBot : MonoBehaviour
             new GeneratedTools.DeleteDirectoryTool(),
             new GeneratedTools.ListFilesTool(),
             new GeneratedTools.ListDirectoriesTool(),
+            new GeneratedTools.FetchUrlTool()
         };
         if (Application.platform == RuntimePlatform.LinuxPlayer) {
             _tools.Add(new GeneratedTools.RunPythonTool());
