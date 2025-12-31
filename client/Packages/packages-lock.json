@@ -1,25 +1,22 @@
 {
   "dependencies": {
     "com.dbrizov.naughtyattributes": {
-      "version": "https://github.com/dbrizov/NaughtyAttributes.git#upm",
+      "version": "file:NaughtyAttributes/Assets/NaughtyAttributes",
       "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "8a8fa5a9659a6d63f196391c71e06c4286c8acd7"
+      "source": "local",
+      "dependencies": {}
     },
     "com.github-glitchenzo.nugetforunity": {
-      "version": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
+      "version": "file:NuGetForUnity/src/NuGetForUnity",
       "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "34432703a177c97631a4eb1d908f086037c67969"
+      "source": "local",
+      "dependencies": {}
     },
     "com.jimmycushnie.jimmysunityutilities": {
-      "version": "https://github.com/JimmyCushnie/JimmysUnityUtilities.git",
+      "version": "file:JimmysUnityUtilities",
       "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "4181883bdfd0a9dac3e1c2dab2dd476d7d71de87"
+      "source": "embedded",
+      "dependencies": {}
     },
     "com.unity.ai.inference": {
       "version": "2.4.1",
