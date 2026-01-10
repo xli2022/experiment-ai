@@ -1,0 +1,150 @@
+import React, { useState, useEffect, useRef } from 'react';
+import ModelSelector from './ModelSelector';
+import PromptSelector from './PromptSelector';
+import MessageList from './MessageList';
+import { useOllama } from '../hooks/useOllama';
+
+const Chat = () => {
+    const { ollama, listModels, chat, abort } = useOllama();
+    const [models, setModels] = useState([]);
+    const [selectedModel, setSelectedModel] = useState('');
+    const [prompts, setPrompts] = useState([]);
+    const [selectedPrompt, setSelectedPrompt] = useState('');
+    const [messages, setMessages] = useState([]);
+    const [input, setInput] = useState('');
+    const [isStreaming, setIsStreaming] = useState(false);
+
+    // State for chat history and processing
+
+
+    const bottomRef = useRef(null);
+
+    useEffect(() => {
+        if (!ollama) return; // Wait for ollama to be initialized
+
+        const fetchModels = async () => {
+            const availableModels = await listModels();
+            setModels(availableModels);
+            if (availableModels.length > 0) {
+                setSelectedModel(prev => {
+                    // Keep current selection if valid, otherwise pick first
+                    const stillExists = availableModels.find(m => m.name === prev);
+                    return stillExists ? prev : availableModels[0].name;
+                });
+            }
+        };
+        fetchModels();
+    }, [ollama, listModels]);
+
+    useEffect(() => {
+        // Load available prompts
+        fetch(`${import.meta.env.BASE_URL}prompts.json`)
+            .then(res => res.json())
+            .then(data => setPrompts(data))
+            .catch(err => console.error("Failed to load prompts list", err));
+    }, []);
+
+    useEffect(() => {
+        // Load prompt content when selectedPrompt changes
+        if (selectedPrompt) {
+            fetch(`${import.meta.env.BASE_URL}prompts/${selectedPrompt}.txt`)
+                .then(res => res.text())
+                .then(text => {
+                    setMessages([{ role: 'system', content: text }]);
+                })
+                .catch(err => console.error(`Failed to load prompt ${selectedPrompt}`, err));
+        } else {
+            setMessages([]);
+        }
+    }, [selectedPrompt]);
+
+    const handleSendMessage = async () => {
+        if (!input.trim() || isStreaming) return;
+
+        const userInput = input;
+        setInput('');
+        setIsStreaming(true);
+
+        // Handle slash commands
+        if (userInput.startsWith('/')) {
+            await handleCommand(userInput);
+            setIsStreaming(false);
+            return;
+        }
+
+        const newMessages = [...messages, { role: 'user', content: userInput }];
+        setMessages(newMessages);
+
+        let assistantMessage = { role: 'assistant', content: '', thinking: '' };
+        setMessages(prev => [...prev, assistantMessage]);
+
+        await chat(selectedModel, newMessages, (part) => {
+            assistantMessage.content += part.message.content;
+            if (part.message.thinking) {
+                assistantMessage.thinking += part.message.thinking;
+            }
+
+            setMessages(prev => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { ...assistantMessage };
+                return updated;
+            });
+        });
+
+        setIsStreaming(false);
+    };
+
+    const handleCommand = async (cmd) => {
+        if (cmd === '/clear') {
+            setMessages([]);
+            // Reload selected prompt if applicable to restore system message
+            if (selectedPrompt) {
+                const text = await fetch(`${import.meta.env.BASE_URL}prompts/${selectedPrompt}.txt`).then(res => res.text());
+                setMessages([{ role: 'system', content: text }]);
+            }
+        } else {
+            setMessages(prev => [...prev, { role: 'system', content: `Unknown command: ${cmd}` }]);
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage();
+        }
+    };
+
+    return (
+        <div className="chat-container">
+            <div className="controls">
+                <ModelSelector
+                    models={models}
+                    selectedModel={selectedModel}
+                    onSelect={setSelectedModel}
+                />
+                <PromptSelector
+                    prompts={prompts}
+                    selectedPrompt={selectedPrompt}
+                    onSelect={setSelectedPrompt}
+                />
+            </div>
+
+            <MessageList messages={messages} />
+
+            <div className="input-area">
+                <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Type a message or /command..."
+                    rows={3}
+                />
+                <button onClick={handleSendMessage} disabled={isStreaming || !selectedModel}>
+                    {isStreaming ? 'Sending...' : 'Send'}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+export default Chat;

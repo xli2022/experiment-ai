@@ -1,0 +1,51 @@
+import React, { useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+const MessageList = ({ messages }) => {
+    const messagesEndRef = useRef(null);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    }, [messages]);
+
+    return (
+        <div className="message-list">
+            {messages.filter(msg => msg.role !== 'system').map((msg, index) => {
+                // Parse for <think> tags (handle both complete and partial/streaming)
+                // Added 'i' flag for case insensitivity
+                const thinkRegex = /<think>([\s\S]*?)?(?:<\/think>|$)/i;
+                const thinkMatch = msg.content.match(thinkRegex);
+
+                let thought = msg.thinking || null;
+                let mainContent = msg.content;
+
+                // Fallback: If no structured thinking, check for tags in content
+                if (!thought && thinkMatch) {
+                    thought = thinkMatch[1] ? thinkMatch[1].trim() : '';
+                    // Remove the think block from the main content
+                    // If closed, remove up to </think>. If open, remove everything after <think>
+                    // Use the same regex approach for replacement to ensure consistency
+                    mainContent = msg.content.replace(thinkRegex, '').trim();
+                }
+
+                return (
+                    <div key={index} className={`message ${msg.role}`}>
+                        <div className="message-content">
+                            {thought && (
+                                <div className="thinking">
+                                    <div className="thinking-header">Thinking Process:</div>
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{thought}</ReactMarkdown>
+                                </div>
+                            )}
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{mainContent}</ReactMarkdown>
+                        </div>
+                    </div>
+                );
+            })}
+            <div ref={messagesEndRef} />
+        </div>
+    );
+};
+
+export default MessageList;
