@@ -17,7 +17,6 @@ const Chat = () => {
     const [preview, setPreview] = useState(null);
 
     const fileInputRef = useRef(null);
-    const bottomRef = useRef(null);
 
     useEffect(() => {
         if (!ollama) return; // Wait for ollama to be initialized
@@ -93,9 +92,14 @@ const Chat = () => {
     };
 
     const handleSendMessage = async () => {
-        if ((!input.trim() && !selectedFile) || isStreaming) return;
+        const userInput = input.trim();
+        if (userInput === '/abort' && isStreaming) {
+            handleCommand('/abort');
+            return;
+        }
 
-        const userInput = input;
+        if ((!userInput && !selectedFile) || isStreaming) return;
+
         const currentFile = selectedFile;
         const currentPreview = preview;
 
@@ -143,7 +147,11 @@ const Chat = () => {
     };
 
     const handleCommand = async (cmd) => {
-        if (cmd === '/clear') {
+        if (cmd === '/abort') {
+            abort();
+            setIsStreaming(false);
+            setInput('');
+        } else if (cmd === '/clear') {
             setMessages([]);
             // Reload selected prompt if applicable to restore system message
             if (selectedPrompt) {
@@ -161,6 +169,7 @@ const Chat = () => {
             handleSendMessage();
         }
     };
+
 
     return (
         <div className="chat-container">

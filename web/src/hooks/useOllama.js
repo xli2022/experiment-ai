@@ -10,7 +10,6 @@ const OLLAMA_HOST = import.meta.env.DEV
 export const useOllama = () => {
     const [ollama, setOllama] = useState(null);
     const [models, setModels] = useState([]);
-    const abortControllerRef = useRef(null);
 
     useEffect(() => {
         const client = new Ollama({ host: OLLAMA_HOST });
@@ -31,8 +30,6 @@ export const useOllama = () => {
     const chat = useCallback(async (model, messages, onChunk) => {
         if (!ollama) return;
 
-        abortControllerRef.current = new AbortController();
-
         try {
             // Enable thinking only for specific reasoning models
             const enableThink = model.startsWith("gpt-oss") || model.startsWith("qwen") || model.startsWith("deepseek");
@@ -45,9 +42,6 @@ export const useOllama = () => {
             });
 
             for await (const part of response) {
-                if (abortControllerRef.current.signal.aborted) {
-                    break;
-                }
                 onChunk(part);
             }
         } catch (error) {
@@ -58,10 +52,10 @@ export const useOllama = () => {
     }, [ollama]);
 
     const abort = useCallback(() => {
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
+        if (ollama) {
+            ollama.abort();
         }
-    }, []);
+    }, [ollama]);
 
     return { ollama, listModels, chat, abort };
 };
