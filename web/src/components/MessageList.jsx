@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 const MessageList = ({ messages }) => {
     const messagesEndRef = useRef(null);
@@ -8,6 +10,17 @@ const MessageList = ({ messages }) => {
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
     }, [messages]);
+
+    const preprocessMath = (text) => {
+        if (!text) return text;
+        // Replace \[ and \] with $$ for display math
+        // Replace \( and \) with $ for inline math
+        return text
+            .replace(/\\\[/g, '$$$$')
+            .replace(/\\\]/g, '$$$$')
+            .replace(/\\\(/g, '$')
+            .replace(/\\\)/g, '$');
+    };
 
     return (
         <div className="message-list">
@@ -29,6 +42,9 @@ const MessageList = ({ messages }) => {
                     mainContent = msg.content.replace(thinkRegex, '').trim();
                 }
 
+                const processedThought = preprocessMath(thought);
+                const processedMainContent = preprocessMath(mainContent);
+
                 return (
                     <div key={index} className={`message ${msg.role}`}>
                         <div className="message-content">
@@ -41,11 +57,13 @@ const MessageList = ({ messages }) => {
                             )}
                             {thought && (
                                 <div className="thinking">
-                                    <div className="thinking-header">Thinking Process:</div>
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{thought}</ReactMarkdown>
+                                    <div className="thinking-header">
+                                        <span>💭</span> Thinking Process
+                                    </div>
+                                    <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>{processedThought}</ReactMarkdown>
                                 </div>
                             )}
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{mainContent}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>{processedMainContent}</ReactMarkdown>
                         </div>
                     </div>
                 );

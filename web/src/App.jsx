@@ -5,7 +5,9 @@ import './index.css'
 function App() {
     return (
         <div className="app-container">
-            <h1>Sam's Chatbot</h1>
+            <header>
+                <h1>Sam's Chatbot</h1>
+            </header>
             <Chat />
         </div>
     )
