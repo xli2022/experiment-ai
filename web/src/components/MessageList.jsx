@@ -32,6 +32,13 @@ const MessageList = ({ messages }) => {
                 return (
                     <div key={index} className={`message ${msg.role}`}>
                         <div className="message-content">
+                            {msg.imagePreview && (
+                                <img
+                                    src={msg.imagePreview}
+                                    alt="Uploaded"
+                                    className="chat-image"
+                                />
+                            )}
                             {thought && (
                                 <div className="thinking">
                                     <div className="thinking-header">Thinking Process:</div>

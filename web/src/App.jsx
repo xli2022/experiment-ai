@@ -5,7 +5,7 @@ import './index.css'
 function App() {
     return (
         <div className="app-container">
-            <h1>AI Chatbot Web</h1>
+            <h1>Sam's Chatbot</h1>
             <Chat />
         </div>
     )

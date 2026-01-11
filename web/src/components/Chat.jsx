@@ -13,10 +13,10 @@ const Chat = () => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isStreaming, setIsStreaming] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [preview, setPreview] = useState(null);
 
-    // State for chat history and processing
-
-
+    const fileInputRef = useRef(null);
     const bottomRef = useRef(null);
 
     useEffect(() => {
@@ -58,11 +58,49 @@ const Chat = () => {
         }
     }, [selectedPrompt]);
 
+    const convertBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const fileReader = new FileReader();
+            fileReader.readAsDataURL(file);
+            fileReader.onload = () => {
+                resolve(fileReader.result);
+            };
+            fileReader.onerror = (error) => {
+                reject(error);
+            };
+        });
+    };
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setSelectedFile(file);
+            try {
+                const base64 = await convertBase64(file);
+                setPreview(base64);
+            } catch (error) {
+                console.error("Error reading file:", error);
+            }
+        }
+    };
+
+    const clearFile = () => {
+        setSelectedFile(null);
+        setPreview(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
+
     const handleSendMessage = async () => {
-        if (!input.trim() || isStreaming) return;
+        if ((!input.trim() && !selectedFile) || isStreaming) return;
 
         const userInput = input;
+        const currentFile = selectedFile;
+        const currentPreview = preview;
+
         setInput('');
+        clearFile();
         setIsStreaming(true);
 
         // Handle slash commands
@@ -72,7 +110,17 @@ const Chat = () => {
             return;
         }
 
-        const newMessages = [...messages, { role: 'user', content: userInput }];
+        const userMessage = { role: 'user', content: userInput };
+
+        if (currentFile && currentPreview) {
+            // Ollama expects base64 without the data URL prefix "data:image/png;base64,"
+            const base64Data = currentPreview.split(',')[1];
+            userMessage.images = [base64Data];
+            // Store the full data URL for displaying in chat history
+            userMessage.imagePreview = currentPreview;
+        }
+
+        const newMessages = [...messages, userMessage];
         setMessages(newMessages);
 
         let assistantMessage = { role: 'assistant', content: '', thinking: '' };
@@ -131,17 +179,39 @@ const Chat = () => {
 
             <MessageList messages={messages} />
 
-            <div className="input-area">
-                <textarea
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Type a message or /command..."
-                    rows={3}
-                />
-                <button onClick={handleSendMessage} disabled={isStreaming || !selectedModel}>
-                    {isStreaming ? 'Sending...' : 'Send'}
-                </button>
+            <div className="input-area-container">
+                {preview && (
+                    <div className="image-preview">
+                        <img src={preview} alt="Upload preview" />
+                        <button className="remove-image-btn" onClick={clearFile} title="Remove image">×</button>
+                    </div>
+                )}
+                <div className="input-area">
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                    />
+                    <button
+                        className="upload-btn"
+                        onClick={() => fileInputRef.current?.click()}
+                        title="Upload Image"
+                    >
+                        📷
+                    </button>
+                    <textarea
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Type a message or upload an image..."
+                        rows={3}
+                    />
+                    <button onClick={handleSendMessage} disabled={isStreaming || !selectedModel}>
+                        {isStreaming ? 'Sending...' : 'Send'}
+                    </button>
+                </div>
             </div>
         </div>
     );

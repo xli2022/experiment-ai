@@ -2,7 +2,10 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Ollama } from 'ollama/browser';
 
 
-const OLLAMA_HOST = 'https://berkeley.babeltimeus.com';
+// Use localhost for local development, production URL otherwise
+const OLLAMA_HOST = import.meta.env.DEV
+    ? 'http://localhost:11434'
+    : 'https://berkeley.babeltimeus.com';
 
 export const useOllama = () => {
     const [ollama, setOllama] = useState(null);
